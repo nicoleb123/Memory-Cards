@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Halloween Memory Game</title>
+    
+<style type="text/css">
+    
+    body {
+        background-color: black;
+    }
+    
+    h1{
+        color: white;
+        text-align: center;
+    }
+    
+    h2{
+        color: white;
+        text-align: center;
+    }
+     
+    /*This is the background image of the game which is where all the cards are held and canvas size*/
+    
+    div#memory_board {
+        background-image: url(pumpkins.jpg);
+        background-size: cover;
+        border: 3px orange solid;
+        width:1050px;
+        height:800px;
+        padding: 24px;
+        margin: 0px auto;
+        max-width: 100%;
+    }
+   
+    /*this is the front of the card which has a pumpkin gif on the front as the cards are flipped down*/
+    
+    div#memory_board > div {
+        background: url(halloween_pumpkin_face_avatar_picture_84366.gif) no-repeat;
+        border: #000 1px solid;
+        width:100px;
+        height: 100px;
+        float: left;
+        margin: 10px;
+        padding: 10px;
+        font-size: 64px;
+        cursor: pointer;
+        text-align: center;
+    }
+
+    /*these are for the images for matching that are the back of the card as each every other one is different*/
+    
+    img {
+        margin-top: -10px;
+        margin-left: -10px;
+    }
+	
+/*this is the dialog box that pops up once the game is over it has layer within it where the text is*/
+    
+    #dialogoverlay {
+        display: none;
+        opacity: .8;
+        position: fixed;
+        top: 0px;
+        left: 0px;
+        background: #FFF;
+        width: 100%;
+        z-index: 10;
+    }
+/*this is the box that pops up when the user finishes the game*/
+    
+    #dialogbox {
+        display: none;
+        position: fixed;
+        background: #000;
+        border-radius: 7px;
+        width: 550px;
+        z-index: 10;
+    }
+    
+    #dialogbox >div { 
+        background: #FFF; margin:8px; 
+    }
+
+    /*this is the inside of the dialog box which is colored with an orange background*/
+    
+    #dialogbox > div > #dialogboxhead {
+        background: orange; font-size:19px; padding:10px; color:#CCC;
+    }
+    
+    /*this is the outerlayer of the dialogox*/
+    
+    #dialogbox > div > #dialogboxbody { 
+        background:#333; padding:20px; color: #FFF; font-size: 20px;
+    }
+    
+    #dialogbox > div > #dialogboxfoot {
+        background: orange; 
+        padding: 10px; text-align: right;
+    }
+    
+    /*this is the ok button that will appear inside the dialogbox if the user wants to restart the game*/
+    
+    button {
+        background-color: white;
+        border: 3px inset orange;
+        color: black;
+        font-family: "Arial", "Helvetica", "Times New Roman";
+        font-size: 15px;    
+    }
+    
+</style>
+    
+    <script>
+     
+    //pictures of the cards tiles once they are flipped are stored in the memory array variable below//
+    var memory_array =["bats","bats","cat","cat","eyes","eyes","frankenstein","frankenstein","ghost","ghost","haunted-house","haunted-house","skeleton","skeleton","snoopy","snoopy","tree","tree","witch","witch"];
+        
+    var memory_values = [];
+        
+    var memory_tiles_ids =[];
+        
+    //no tile is flipped yet
+    var tiles_flipped = 0;
+    
+    //this function tells the board to shuffle the cards at random everytime the board is reset for a new game.
+    Array.prototype.memory_tile_shuffle = function (){
+        var i = this.length, j, temp;
+        while (--i > 0) {
+            j = Math.floor(Math.random() * (i+1));
+            temp = this[j];
+            this[j] = this[i];
+            this[i] = temp;
+        
+        }
+    }
+    
+    //this creates a new board with the tile shuffle with no cards flipped over in the second function when a tile is clicked the tile will flip over to reveal any random card that has been stored in the memory array//
+    function newBoard(){
+        tiles_flipped = 0;
+        var output = '';
+        memory_array.memory_tile_shuffle();
+        
+        for(var i = 0; i < memory_array.length; i++){
+            output += '<div id="tile_'+i+'" onclick="memoryFlipTile(this,\''+memory_array[i]+'\')"></div>';
+        }
+        
+        document.getElementById('memory_board').innerHTML = output;    
+    }
+    
+        //when the tile is flipped using the playClick() a sound will be made to when the new image is showed that is a jpg//
+    function memoryFlipTile(tile,val){
+        playClick();
+        
+    if(tile.innerHTML == "" && memory_values.length < 2){
+        tile.style.background = '#FFF';
+        tile.innerHTML = '<img src="' + val + '.jpg"/>';
+        if(memory_values.length == 0){
+            memory_values.push(val);
+            memory_tiles_ids.push(tile.id);
+            
+        } 
+        
+        else if(memory_values.length == 1)
+        {
+            memory_values.push(val);
+            memory_tiles_ids.push(tile.id);
+            
+            //if there are matching cards then the cards will stay flipped and using the playMatch() a sound will be made to indicate a match//
+            if(memory_values[0] == memory_values[1]){
+                tiles_flipped += 2;
+           
+                playMatch();
+               
+                //Clear both arrays//
+                memory_values = [];
+                memory_tiles_ids = [];
+                
+                //Check to see if the whole board is cleared and if it is then an alert will be shown to the user with the message below and music will play to indicate game over//
+            if(tiles_flipped == memory_array.length){
+                playEnd();
+            Alert.render("Congratulations you won! Happy Halloween!");
+                    document.getElementById('memory_board').innerHTML == "";
+                    newBoard();
+                }
+                
+            } 
+            else 
+            {
+                //If there are no two matching cards then both cards get flipped back over and the original picture that is under the background will display again//
+                function flip2Back()
+                {
+                    
+                    var tile_1 = document.getElementById(memory_tiles_ids[0]);
+                    var tile_2 = document.getElementById(memory_tiles_ids[1]);
+                    tile_1.style.background = 'url(halloween_pumpkin_face_avatar_picture_84366.gif) no-repeat';
+                    tile_1.innerHTML = "";
+                    tile_2.style.background = 'url(halloween_pumpkin_face_avatar_picture_84366.gif) no-repeat';
+                    tile_2.innerHTML = "";
+                
+                    //Clear both arrays//
+                    memory_values = [];
+                    memory_tiles_ids = [];
+                }
+                
+                setTimeout(flip2Back, 700);
+            }
+            
+            
+        } 
+    }
+        
+    }
+
+        function playClick(){
+            var sound = document.getElementById("click");
+            sound.play();
+        }
+        
+        function playMatch(){
+            var sound = document.getElementById("match_sound");
+            sound.play();
+        }
+    
+        function playEnd(){
+            var sound = document.getElementById("finished");
+            sound.play();
+        }
+        
+        //Custom alert is created that has dialog boxes to give the user the message that was written. The message will always be in the center of the screen no matter the size of the users screen using the dialogoverlay and dialogbox.style.height/left//
+        function CustomAlert(){
+            
+            this.render = function (dialog){
+                var winW = window.innerWidth;
+                var winH = window.innerHeight;
+                var dialogoverlay = document.getElementById('dialogoverlay');
+                var dialogbox = document.getElementById('dialogbox');
+                dialogoverlay.style.display = "block";
+                dialogoverlay.style.height = winH + "px";
+                dialogbox.style.left = (winW/2) - (550 * .5)+ "px";
+                dialogbox.style.top = "100px";
+                dialogbox.style.display = "block";
+               
+               document.getElementById('dialogboxhead').innerHTML = "";
+                document.getElementById('dialogboxbody').innerHTML = dialog;
+                document.getElementById('dialogboxfoot').innerHTML = '<button onclick="Alert.ok()">New Game</button>';
+        
+            }
+            
+            this.ok = function (){
+                document.getElementById('dialogbox').style.display = "none";
+                document.getElementById('dialogoverlay').style.display="none";
+    
+                 
+            }
+        }
+        
+        var Alert = new CustomAlert();
+      
+</script>
+</head>
+<body>
+    
+    
+    <h1>Halloween Memory Game</h1>
+    
+    <h2>How good is your memory?</h2>
+    
+    <div id="memory_board"></div>
+    
+    <!--this is the new board that will appear when the user refreshes the game or completes it-->
+    
+    <script>newBoard();</script>
+    
+    <!--this is the audio that plays when a user clicks on a card to look for a match-->
+    
+    <audio id = "click" src="Monster-laugh.mp3" preload="auto"></audio>
+    
+    <!--this is the sound that will be played when the user gets a match-->
+    
+    <audio id = "match_sound" src="magic-chime-06.mp3" preload="auto"></audio>
+    
+    <!--when the game is completed this song is what will play-->
+    
+     <audio id = "finished" src="halloween.mp3" preload="auto"></audio>
+
+    <div id="dialogoverlay"></div>
+    
+    <div id="dialogbox">
+        
+    <div>
+            <div id="dialogboxhead"></div>
+        
+            <div id="dialogboxbody"></div>
+        
+            <div id="dialogboxfoot"></div>
+        
+        </div>
+        
+    </div>
+</body>
+</html>
